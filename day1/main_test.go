@@ -1,43 +1,32 @@
 package main
 
 import (
-	"bufio"
-	"strings"
 	"testing"
 )
 
-func equalNumSlices(a []int, b []int) bool {
-	if len(a) != len(b) {
-		return false
+func input() []byte {
+	return []byte("1000\n2000\n3000\n\n4000\n\n5000\n6000\n\n7000\n8000\n9000\n\n10000")
+}
+
+func TestOne(t *testing.T) {
+	wantPos, wantTotal := 4, 24000
+	gotPos, gotTotal := one(input())
+
+	if gotPos != wantPos || gotTotal != wantTotal {
+		t.Fail()
 	}
-	for i, v := range a {
-		if v != b[i] {
-			return false
+}
+
+func TestTwo(t *testing.T) {
+	wantPositions, wantTotal := []int{4, 3, 5}, 45000
+	gotPositions, gotTotal := two(input())
+
+	if gotTotal != wantTotal || len(gotPositions) != 3 {
+		t.Fail()
+	}
+	for i := range gotPositions {
+		if gotPositions[i] != wantPositions[i] {
+			t.Fail()
 		}
-	}
-	return true
-}
-
-func TestFindMax(t *testing.T) {
-	want := 3
-	got := findMax([]int{1, 2, 3})
-	if want != got {
-		t.Fail()
-	}
-}
-
-func TestFindMaxEmptySlice(t *testing.T) {
-	want := 0
-	got := findMax([]int{})
-	if want != got {
-		t.Fail()
-	}
-}
-
-func TestFSumSliceSuccess(t *testing.T) {
-	want := []int{6}
-	got := fSumSlice(bufio.NewScanner(strings.NewReader("1\n2\n3\n")))
-	if !equalNumSlices(want, got) {
-		t.Fail()
 	}
 }

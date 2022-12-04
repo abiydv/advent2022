@@ -6,63 +6,44 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sort"
 	"strconv"
 )
 
-func fSumSlice(scanner *bufio.Scanner) []int {
-	var sum int
-	var sumSlice []int
+type elf struct {
+	position int
+	total    int
+}
+
+func totals(d []byte) []elf {
+	scanner := bufio.NewScanner(bytes.NewReader(d))
+	pos, total := 1, 0
+	elfs := []elf{}
 
 	for scanner.Scan() {
-		d, err := strconv.Atoi(scanner.Text())
-		sum = sum + d
+		l, err := strconv.Atoi(scanner.Text())
+		total = total + l
 		if err != nil { // empty line
-			sumSlice = append(sumSlice, sum)
-			sum = 0
+			elfs = append(elfs, elf{position: pos, total: total})
+			pos, total = pos+1, 0 // increment position, reset total
 		}
 	}
-	if sum != 0 { // append the last sum to the slice
-		sumSlice = append(sumSlice, sum)
+	if total != 0 { // append the last elf to the slice
+		elfs = append(elfs, elf{position: pos, total: total})
 	}
-	return sumSlice
+
+	sort.Slice(elfs, func(i int, j int) bool { return elfs[i].total > elfs[j].total })
+
+	return elfs
 }
 
-func findMax(s []int) int {
-	max := 0
-	for i := range s {
-		if s[i] > max {
-			max = s[i]
-		}
-	}
-	return max
+func two(d []byte) ([]int, int) {
+	elfs := totals(d)
+	return []int{elfs[0].position, elfs[1].position, elfs[2].position}, elfs[0].total + elfs[1].total + elfs[2].total
 }
-
-func findPos(v int, s []int) int {
-	idx := -1
-	for i := range s {
-		if s[i] == v {
-			idx = i
-		}
-	}
-	return idx
-}
-
-func findTopN(n int, s []int) []int {
-	if n > len(s) || n == len(s) {
-		return s
-	}
-
-	topN := []int{}
-	ss := []int{}
-	ss = append(ss, s[:]...) // don't modify the original slice
-
-	for i := 0; i < n; i++ {
-		m := findMax(ss)
-		p := findPos(m, ss)
-		topN = append(topN, m)
-		ss = append(ss[:p], ss[p+1:]...)
-	}
-	return topN
+func one(d []byte) (int, int) {
+	elfs := totals(d)
+	return elfs[0].position, elfs[0].total
 }
 
 func main() {
@@ -70,20 +51,9 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	scanner := bufio.NewScanner(bytes.NewReader(data))
 
-	sumSlice := fSumSlice(scanner)
-
-	// top := 1 // part 1
-	top := 3 // part 2
-	topVals := findTopN(top, sumSlice)
-
-	var sum int
-	var positions []int
-	for i := range topVals {
-		sum = sum + topVals[i]
-		positions = append(positions, findPos(topVals[i], sumSlice))
-	}
-	fmt.Printf("Total calories %d carried by top %d Elfs %d\n", sum, top, positions)
-
+	position, maxTotal := one(data)
+	fmt.Printf("Part 1: Most calories carried by Elf %d: %d\n", position, maxTotal)
+	positions, maxTotal := two(data)
+	fmt.Printf("Part 2: Top 3 Elves carrying the most Calories: %d, they are carrying %d calories in total.\n", positions, maxTotal)
 }
